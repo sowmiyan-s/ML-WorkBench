@@ -122,6 +122,59 @@ if st.button("Train Model"):
     
     
     
+    
+#------------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------------
+# Test model with custom input
+if "model" in st.session_state:
+    st.subheader("Test Model with Custom Input")
+
+    import numpy as np
+
+    # Create input fields for all features
+    user_input = []
+    st.write("Enter values for features:")
+    for col in st.session_state.x_cols:
+        val = st.text_input(f"{col}", "")
+        if val != "":
+            try:
+                val = float(val)
+            except:
+                st.warning(f"Invalid input for {col}, using 0")
+                val = 0
+        else:
+            val = 0
+        user_input.append(val)
+
+    user_input_array = np.array(user_input).reshape(1, -1)
+
+    # Button to predict
+    if st.button("Predict"):
+        try:
+            prediction = st.session_state.model.predict(user_input_array)
+            if st.session_state.task == "regression":
+                st.success(f"Predicted value: {prediction[0]:.4f}")
+            else:
+                st.success(f"Predicted class: {prediction[0]}")
+        except Exception as e:
+            st.error(f"Prediction failed: {e}")
+
+    # Optional: prediction history
+    if "pred_history" not in st.session_state:
+        st.session_state.pred_history = []
+
+    if st.button("Add to History"):
+        try:
+            prediction = st.session_state.model.predict(user_input_array)
+            st.session_state.pred_history.append(prediction[0])
+            st.write("Prediction history:", st.session_state.pred_history)
+        except:
+            st.error("Cannot add to history, prediction failed.")
+
+    
+    
+    
 #--------------------------------------------------------------------------------------------------
 
 
