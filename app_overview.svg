@@ -27,7 +27,7 @@
 
   <!-- Title -->
   <text x="50%" y="50" text-anchor="middle" font-size="24" font-weight="bold" fill="url(#grad1)">ML Workbench</text>
-  <text x="50%" y="80" text-anchor="middle" font-size="14" fill="#666">Data Analysis & Machine Learning Pipeline</text>
+  <text x="50%" y="80" text-anchor="middle" font-size="14" fill="#666">Data Analysis &amp; Machine Learning Pipeline</text>
 
   <!-- Nodes and Links -->
   <g transform="translate(100, 150)">
