@@ -18,9 +18,23 @@ y_col = None
 st.title("ML Workbench")
 
 #--------------------------------------------
+# Sidebar - About App
+st.sidebar.title("About App")
+st.sidebar.info(
+    "**ML Workbench** is an enterprise-grade data analysis and machine learning platform designed to democratize AI. "
+    "It empowers users to seamlessly upload datasets, perform robust preprocessing, train state-of-the-art models, "
+    "and derive actionable insights through an intuitive, code-free interface."
+)
+st.sidebar.markdown("---")
+st.sidebar.link_button("View on GitHub", "https://github.com/sowmiyan-s/ML-WorkBench")
+st.sidebar.markdown("Created by [Sowmiyan S](https://github.com/sowmiyan-s)")
+
+#--------------------------------------------
 # Upload Dataset
-st.subheader("Upload Dataset")
-uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+# Upload Dataset
+st.header("Step 1: Upload Your Data")
+st.markdown("Start by uploading your CSV file. This is the data we will use to train the model.")
+uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
@@ -30,8 +44,10 @@ if uploaded_file:
 
 #--------------------------------------------
 # Preprocessing
+# Preprocessing
 if uploaded_file:
-    st.subheader("Preprocessing")
+    st.header("Step 2: Clean and Prepare Data")
+    st.markdown("Data often needs cleaning before it can be used. Use the options below to fix common issues.")
 
     # Drop missing values
     if st.checkbox("Drop rows with missing values"):
@@ -39,13 +55,33 @@ if uploaded_file:
         st.write("After dropping NA:", df.shape)
 
     # Identify numeric and categorical columns
-    num_cols = df.select_dtypes(include=["float64", "int64"]).columns.tolist()
-    cat_cols = df.select_dtypes(include=["object"]).columns.tolist()
-    st.write("Numeric columns:", num_cols)
-    st.write("Categorical columns:", cat_cols)
+    num_cols = df.select_dtypes(include=["number"]).columns.tolist()
+    cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
+    
+    st.markdown("### Data Overview")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown(f"**Numeric Columns** ({len(num_cols)})")
+        st.caption("Columns containing numbers.")
+        st.write(num_cols)
+    
+    with col2:
+        st.markdown(f"**Categorical Columns** ({len(cat_cols)})")
+        st.caption("Columns containing text or categories.")
+        st.write(cat_cols)
+
+    with st.expander("View Detailed Statistics"):
+        col_info = pd.DataFrame({
+            'Column': df.columns,
+            'Type': df.dtypes.astype(str),
+            'Missing Values': df.isnull().sum(),
+            'Unique Values': df.nunique()
+        })
+        st.dataframe(col_info, use_container_width=True)
 
     # Normalize numeric columns
-    normalize = st.multiselect("Normalize numeric columns", num_cols)
+    normalize = st.multiselect("Scale Numbers (Optional)", num_cols, help="Adjusts numeric values to a common scale. Useful for some algorithms.")
     if normalize:
         from sklearn.preprocessing import StandardScaler
         df[normalize] = StandardScaler().fit_transform(df[normalize])
@@ -54,21 +90,26 @@ if uploaded_file:
 # Select Features and Target
 if uploaded_file:
     all_cols = df.columns.tolist()
-    x_cols = st.multiselect("Select features (X)", all_cols)
-    y_col = st.selectbox("Select target (Y)", all_cols)
+    st.header("Step 3: Choose What to Predict")
+    st.markdown("Select the columns you want the model to learn from (Inputs) and the column you want to predict (Target).")
+    x_cols = st.multiselect("Select Input Columns (Features)", all_cols, help="Choose the columns the model should learn from.")
+    y_col = st.selectbox("Select Target Column (Prediction)", all_cols, help="Choose the column you want to predict.")
 
 #--------------------------------------------
 # Select Algorithm and Test Size
 if x_cols and y_col:
-    algo = st.selectbox("Choose Algorithm", [
+    st.header("Step 4: Choose a Learning Method")
+    st.markdown("Select an algorithm to train your model. If you're unsure, try **Random Forest**.")
+    algo = st.selectbox("Select Method", [
         "Linear Regression", "Random Forest Regressor", "KNN Regressor", "SVR",
         "Logistic Regression", "Decision Tree", "Random Forest Classifier", "KNN Classifier", "SVM", "Naive Bayes"
     ])
-    test_size = st.slider("Test size fraction", 0.1, 0.5, 0.2)
+    st.caption("Note: Regressors are for predicting numbers (e.g., price), Classifiers are for predicting categories (e.g., yes/no).")
+    test_size = st.slider("Test Data Size (Fraction)", 0.1, 0.5, 0.2, help="How much data should be kept aside for testing? 0.2 means 20%.")
 
 #--------------------------------------------
 # Train Model
-if st.button("Train Model"):
+if st.button("Start Training", type="primary"):
     X = df[x_cols].values
     y = df[y_col].values
 
