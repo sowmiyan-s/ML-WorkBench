@@ -202,19 +202,25 @@ if "model" in st.session_state:
 #--------------------------------------------
 # Export Model
 if "model" in st.session_state:
-    st.subheader("Export Model")
-    save_path = st.text_input("Enter path to save ZIP", os.path.join(os.getcwd(), "trained_model.zip"))
+    st.header("Step 5: Download Model")
+    st.markdown("Download your trained model to use it in other applications.")
 
-    if st.button("Save Model ZIP"):
-        try:
-            with zipfile.ZipFile(save_path, "w") as zf:
-                # Save model
-                model_bytes = io.BytesIO()
-                pickle.dump(st.session_state.model, model_bytes)
-                zf.writestr("model.pkl", model_bytes.getvalue())
-                # Save metadata
-                info = f"X columns: {st.session_state.x_cols}\nY column: {st.session_state.y_col}\nTask: {st.session_state.task}"
-                zf.writestr("model_info.txt", info)
-            st.success(f"Model saved as {save_path}")
-        except Exception as e:
-            st.error(f"Failed to save: {e}")
+    # Create in-memory buffer
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w") as zf:
+        # Save model
+        model_bytes = io.BytesIO()
+        pickle.dump(st.session_state.model, model_bytes)
+        zf.writestr("model.pkl", model_bytes.getvalue())
+        # Save metadata
+        info = f"X columns: {st.session_state.x_cols}\nY column: {st.session_state.y_col}\nTask: {st.session_state.task}"
+        zf.writestr("model_info.txt", info)
+    
+    zip_buffer.seek(0)
+    
+    st.download_button(
+        label="Download Trained Model (ZIP)",
+        data=zip_buffer,
+        file_name="trained_model.zip",
+        mime="application/zip"
+    )
